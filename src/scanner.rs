@@ -61,8 +61,56 @@ impl Scanner {
             '+' => self.add_token(TokenType::PLUS),
             ';' => self.add_token(TokenType::SEMICOLON),
             '*' => self.add_token(TokenType::STAR),
+            '!' => {
+                let token_type: TokenType = match self.match_token('=') {
+                    true => TokenType::BANG_EQUAL,
+                    false => TokenType::BANG,
+                };
+
+                self.add_token(token_type);
+            },
+            '=' => {
+                let token_type: TokenType = match self.match_token('=') {
+                    true => TokenType::EQUAL_EQUAL,
+                    false => TokenType::EQUAL,
+                };
+
+                self.add_token(token_type);
+            },
+            '<' => {
+                let token_type: TokenType = match self.match_token('=') {
+                    true => TokenType::LESS_EQUAL,
+                    false => TokenType::LESS,
+                };
+
+                self.add_token(token_type);
+            },
+            '>' => {
+                let token_type: TokenType = match self.match_token('=') {
+                    true => TokenType::GREATER_EQUAL,
+                    false => TokenType::GREATER,
+                };
+
+                self.add_token(token_type);
+            },
             _ => Lox::error(self.line, String::from("Unexpected character."))
         }
+    }
+
+    fn match_token(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+
+        if let Some(c) = self.source.chars().nth(self.current) {
+            if c != expected {
+                return false;
+            }
+        }
+
+        self.current += 1;
+
+        return true;
     }
 
     fn is_at_end(&mut self) -> bool {
