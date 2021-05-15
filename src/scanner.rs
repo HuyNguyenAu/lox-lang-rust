@@ -101,8 +101,38 @@ impl Scanner {
             },
             ' ' | '\r' | '\t' => {},
             '\n' => self.line += 1,
+            '"' => self.string(),
             _ => Lox::error(self.line, String::from("Unexpected character."))
         }
+    }
+
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            } else {
+                self.advance();
+            }
+        }
+
+        if self.is_at_end() {
+            Lox::error(self.line, String::from("Unterminated string."));
+            return;
+        }
+
+        // The closing ".
+        self.advance();
+
+        /* Need to create copies of required vars to avoid mutable_borrow_reservation_conflict.
+        This avoids borrowing self as immutable at source.get and self.add_token_complete in
+        two places. */
+        let source = self.source.clone();
+        let start = self.start + 1;
+        let end = self.current - 1;
+
+        if let Some(value) = source.get(start..end){
+            self.add_token_complete(TokenType::String, Literal::String(value.to_string()));
+        } 
     }
 
     fn match_token(&mut self, expected: char) -> bool {

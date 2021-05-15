@@ -8,10 +8,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use scanner::{ Scanner, token::Token };
 
+/* Avoids passing in self as argument which allows use to 
+continue with the tutorial without changing the structure
+of the code too much for error and report function. */
 static HAD_ERROR: AtomicBool = AtomicBool::new(false);
 
 struct Lox {
-    had_error: bool
 }
 
 impl Lox {
@@ -60,7 +62,7 @@ impl Lox {
                 }
             }
     
-            self.had_error = false;
+            HAD_ERROR.store(false, Ordering::Relaxed);
         }
     }
     
@@ -84,6 +86,6 @@ impl Lox {
 }
 
 fn main() {
-    let mut lox = Lox { had_error: false };
+    let mut lox = Lox { };
     lox.main();
 }
