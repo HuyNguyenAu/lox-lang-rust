@@ -1,10 +1,10 @@
 mod token_type;
 mod literal;
 
-use token_type::TokenType;
-use literal::Literal;
+pub use token_type::TokenType;
+pub use literal::Literal;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     token_type: TokenType,
     lexeme: String,
@@ -17,7 +17,7 @@ impl Token {
         Token { token_type, lexeme, literal, line}
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn to_string(&mut self) -> String {
         String::from(
             format!(
                 "{:?} {} {:?}", 
