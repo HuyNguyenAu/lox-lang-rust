@@ -7,9 +7,9 @@ use std::io::{ stdin, stdout, Write };
 
 use scanner::{ Scanner, token::Token };
 
-
 fn main() {
     let args: Vec<String> = args().collect();
+    let mut had_error: bool = false;
 
     if args.len() > 2 {
         println!("Usage: jlox [script]");
@@ -58,4 +58,13 @@ fn run(source: String) {
     for token in tokens {
         println!("{:?}", token);
     }
+}
+
+fn error(line: u32, message: String, had_error: &mut bool) {
+    report(line, String::from(""), message, had_error);
+}
+
+fn report (line: u32, location: String, message: String, had_error: &mut bool) {
+    println!("[line {}] Error {}: {}", line, location, message);
+    *had_error = true;
 }
