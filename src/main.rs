@@ -1,7 +1,12 @@
-use std::{env::{ args }, io::Write};
-use std::process::{ exit };
-use std::fs::{ read_to_string };
-use std::io::{ stdin, stdout };
+mod scanner;
+
+use std::env::args;
+use std::process::exit;
+use std::fs::read_to_string;
+use std::io::{ stdin, stdout, Write };
+
+use scanner::{ Scanner, token::Token };
+
 
 fn main() {
     let args: Vec<String> = args().collect();
@@ -10,7 +15,7 @@ fn main() {
         println!("Usage: jlox [script]");
         exit(64);
     } else if args.len() == 2 {
-        // run_file(args[1].clone());
+        run_file(args[1].clone());
     } else {
         run_prompt();
     }
@@ -47,5 +52,10 @@ fn run_prompt() {
 }
 
 fn run(source: String) {
-    println!("{}", source);
+    let scanner: Scanner = Scanner::new(source);
+    let tokens: Vec::<Token> = scanner.scan_tokens();
+
+    for token in tokens {
+        println!("{:?}", token);
+    }
 }
