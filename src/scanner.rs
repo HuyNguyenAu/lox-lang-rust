@@ -2,8 +2,6 @@ use crate::Lox;
 
 pub mod token;
 
-use std::str::Chars;
-
 use token::{ Token, TokenType, Literal };
 
 pub struct Scanner {
@@ -12,8 +10,7 @@ pub struct Scanner {
     start: usize,
     current: usize,
     end: usize,
-    line: u32,
-    is_at_end: bool
+    line: u32
 }
 
 impl Scanner {
@@ -24,13 +21,12 @@ impl Scanner {
             start: 0,
             current: 0,
             end: 0,
-            line: 1,
-            is_at_end: false
+            line: 1
         }
     }
 
     pub fn scan_tokens(&mut self) -> Vec<Token> {
-        while !self.is_at_end {
+        while !self.is_at_end() {
             self.start = self.current;
             self.scan_token();
         }
@@ -51,44 +47,44 @@ impl Scanner {
         let c = self.advance();
 
         match c {
-            '(' => self.add_token(TokenType::LEFT_PAREN),
-            ')' => self.add_token(TokenType::RIGHT_PAREN),
-            '{' => self.add_token(TokenType::LEFT_BRACE),
-            '}' => self.add_token(TokenType::RIGHT_BRACE),
-            ',' => self.add_token(TokenType::COMMA),
-            '.' => self.add_token(TokenType::DOT),
-            '-' => self.add_token(TokenType::MINUS),
-            '+' => self.add_token(TokenType::PLUS),
-            ';' => self.add_token(TokenType::SEMICOLON),
-            '*' => self.add_token(TokenType::STAR),
+            '(' => self.add_token(TokenType::LeftParen),
+            ')' => self.add_token(TokenType::RightParen),
+            '{' => self.add_token(TokenType::LeftBrace),
+            '}' => self.add_token(TokenType::RightBrace),
+            ',' => self.add_token(TokenType::Comma),
+            '.' => self.add_token(TokenType::Dot),
+            '-' => self.add_token(TokenType::Minus),
+            '+' => self.add_token(TokenType::Plus),
+            ';' => self.add_token(TokenType::SemiColon),
+            '*' => self.add_token(TokenType::Star),
             '!' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::BANG_EQUAL,
-                    false => TokenType::BANG,
+                    true => TokenType::BangEqual,
+                    false => TokenType::Bang,
                 };
 
                 self.add_token(token_type);
             },
             '=' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::EQUAL_EQUAL,
-                    false => TokenType::EQUAL,
+                    true => TokenType::EqualEqual,
+                    false => TokenType::Equal,
                 };
 
                 self.add_token(token_type);
             },
             '<' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::LESS_EQUAL,
-                    false => TokenType::LESS,
+                    true => TokenType::LessEqual,
+                    false => TokenType::Less,
                 };
 
                 self.add_token(token_type);
             },
             '>' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::GREATER_EQUAL,
-                    false => TokenType::GREATER,
+                    true => TokenType::GreaterEqual,
+                    false => TokenType::Greater,
                 };
 
                 self.add_token(token_type);
@@ -100,9 +96,11 @@ impl Scanner {
                         self.advance();
                     }
                 } else {
-                    self.add_token(TokenType::SLASH);
+                    self.add_token(TokenType::Slash);
                 }
             },
+            ' ' | '\r' | '\t' => {},
+            '\n' => self.line += 1,
             _ => Lox::error(self.line, String::from("Unexpected character."))
         }
     }
@@ -144,7 +142,7 @@ impl Scanner {
             self.current += 1;
             return c;
         }
-        
+
         panic!("Failed to advance.")
     }
 
