@@ -93,6 +93,16 @@ impl Scanner {
 
                 self.add_token(token_type);
             },
+            '/' => {
+                if self.match_token('/') {
+                    // A comment goes until the end of the line.
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::SLASH);
+                }
+            },
             _ => Lox::error(self.line, String::from("Unexpected character."))
         }
     }
@@ -113,14 +123,24 @@ impl Scanner {
         return true;
     }
 
+    fn peek(&mut self) -> char {
+        if self.is_at_end() {
+            return '\0';
+        }
+
+        if let Some(c) = self.source.chars().nth(self.current) {
+            return c;
+        }
+
+        panic!("")
+    }
+
     fn is_at_end(&mut self) -> bool {
         self.current >= self.source.len()
     }
 
     fn advance(&mut self) -> char {
-        let mut chars: Chars = self.source.chars();
-        
-        if let Some(c) = chars.nth(self.current) {
+        if let Some(c) = self.source.chars().nth(self.current) {
             self.current += 1;
             return c;
         }
