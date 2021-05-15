@@ -15,20 +15,24 @@ fn main() {
         println!("Usage: jlox [script]");
         exit(64);
     } else if args.len() == 2 {
-        run_file(args[1].clone());
+        run_file(args[1].clone(), had_error);
     } else {
-        run_prompt();
+        run_prompt(&mut had_error);
     }
 }
 
-fn run_file(path: String) {
+fn run_file(path: String, had_error: bool) {
     match read_to_string(path) {
         Ok(source) => run(source),
         Err(error) => panic!("{}", error)
     };
+
+    if had_error {
+        exit(64);
+    }
 }
 
-fn run_prompt() {
+fn run_prompt(had_error: &mut bool) {
     loop {
         print!("> ");
         /* Stdout is line buffered. Flush is triggered on a new line.
@@ -48,6 +52,8 @@ fn run_prompt() {
                 panic!("{}", error);
             }
         }
+
+        *had_error = false;
     }
 }
 
