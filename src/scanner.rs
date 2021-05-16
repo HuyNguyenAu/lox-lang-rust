@@ -117,7 +117,24 @@ impl Scanner {
                     while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
                     }
-                } else {
+                } else if self.match_token('*') {
+                    // A multi comment goes until '*/'.
+                    while !self.is_at_end() {
+                        if self.peek() == '*' && self.peek_next() == '/' {
+                            // Consume '*/'.
+                            self.advance();
+                            self.advance();
+                            break;
+                        }
+
+                        if self.match_token('\n') {
+                            self.line += 1;
+                        }
+
+                        self.advance();
+                    }
+                } 
+                else {
                     self.add_token(TokenType::Slash);
                 }
             },
@@ -294,7 +311,7 @@ impl Scanner {
             return c;
         }
 
-        panic!("Failed to advance.")
+        panic!("Failed to advance!")
     }
 
     fn add_token(&mut self, token_type: TokenType) {
