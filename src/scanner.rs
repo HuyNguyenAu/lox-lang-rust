@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::Lox;
 
 pub mod token;
@@ -10,18 +12,38 @@ pub struct Scanner {
     start: usize,
     current: usize,
     end: usize,
-    line: u32
+    line: u32,
+    keywords: HashMap<String, TokenType>
 }
 
 impl Scanner {
     pub fn new(source: String) -> Self {
+        let mut reserved: HashMap<String, TokenType> = HashMap::new();
+        reserved.insert(String::from("and"),TokenType::And);
+        reserved.insert(String::from("class"),TokenType::Class);
+        reserved.insert(String::from("else"),TokenType::Else);
+        reserved.insert(String::from("false"),TokenType::False);
+        reserved.insert(String::from("for"),TokenType::For);
+        reserved.insert(String::from("fun"),TokenType::Fun);
+        reserved.insert(String::from("if"),TokenType::If);
+        reserved.insert(String::from("nil"),TokenType::Nil);
+        reserved.insert(String::from("or"),TokenType::Or);
+        reserved.insert(String::from("print"),TokenType::Print);
+        reserved.insert(String::from("return"),TokenType::Return);
+        reserved.insert(String::from("super"),TokenType::Super);
+        reserved.insert(String::from("this"),TokenType::This);
+        reserved.insert(String::from("true"),TokenType::True);
+        reserved.insert(String::from("var"),TokenType::Var);
+        reserved.insert(String::from("while"),TokenType::While);
+
         Scanner {
             source,
             tokens: Vec::new(),
             start: 0,
             current: 0,
             end: 0,
-            line: 1
+            line: 1,
+            keywords: reserved
         }
     }
 
@@ -102,7 +124,79 @@ impl Scanner {
             ' ' | '\r' | '\t' => {},
             '\n' => self.line += 1,
             '"' => self.string(),
-            _ => Lox::error(self.line, String::from("Unexpected character."))
+            _ => {
+                if self.is_digit(c) {
+                    self.number();
+                } else if self.is_alpha(c) {
+                    self.identifier();
+                } else {
+                    Lox::error(self.line, String::from("Unexpected character."));
+                }
+            }
+        }
+    }
+
+    fn identifier(&mut self) {
+        // Avoids borrowing immutable and mutable clashes.
+        let c = self.peek();
+
+        while self.is_alpha_numberic(c) {
+            self.advance();
+        }
+
+        let source = self.source.clone();
+
+        if let Some(text) = source.get(self.start..self.current) {
+            let keywords = self.keywords.clone();
+            let mut token_type = TokenType::Identifier;
+
+            if let Some(value) = keywords.get_key_value(text) {
+                token_type = value.1.clone();
+            }
+
+            self.add_token(token_type);
+        } else {
+            panic!("Failed to get identifier!");
+        }
+    }
+
+    fn number(&mut self) {
+        // Avoids borrowing immutable and mutable clashes.
+        let c = self.peek();
+
+        while self.is_digit(c) {
+            self.advance();
+        }
+
+        /* Avoids borrowing immutable and mutable clashes.
+        Hoist var c to avoid creating seperate vars. */
+        let c = self.peek_next();
+
+        // Look for a fractional part.
+        if self.peek() == '.' && self.is_digit(c) {
+            // Consume the ".".
+            self.advance();
+
+            /* Avoids borrowing immutable and mutable clashes.
+            Hoist var c to avoid creating seperate vars. */
+            let c = self.peek();
+
+            while self.is_digit(c) {
+                self.advance();
+            }
+        }
+
+        let source = self.source.clone();
+
+        // Trim the surrounding quotes.
+        if let Some(value) = source.get(self.start..self.current) {
+            if let Ok(number) = value.parse() {
+                self.add_token_complete(TokenType::Number, Literal:: Number(number));
+            } else {
+                panic!("Failed to convert to number!")
+            }
+        } else {
+            panic!("Failed to get substring from source!");
         }
     }
 
@@ -130,6 +224,7 @@ impl Scanner {
         let start = self.start + 1;
         let end = self.current - 1;
 
+        // Trim the surrounding quotes.
         if let Some(value) = source.get(start..end){
             self.add_token_complete(TokenType::String, Literal::String(value.to_string()));
         } 
@@ -161,6 +256,32 @@ impl Scanner {
         }
 
         panic!("")
+    }
+
+    fn peek_next(&mut self) -> char {
+        if (self.current + 1) >= self.source.len() {
+            return '\0';
+        }
+
+        if let Some(c) = self.source.chars().nth(self.current + 1) {
+            return c;
+        }
+
+        panic!("Failed to peek next char in source!");
+    }
+
+    fn is_alpha(&self, c: char) -> bool {
+        (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        c == '_'
+    }
+
+    fn is_alpha_numberic(&self, c: char) -> bool {
+        self.is_alpha(c) || self.is_digit(c)
+    }
+
+    fn is_digit(&self, c: char) -> bool {
+        c >= '0' && c <= '9'
     }
 
     fn is_at_end(&mut self) -> bool {
