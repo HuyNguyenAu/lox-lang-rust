@@ -157,7 +157,7 @@ impl Scanner {
         // Avoids borrowing immutable and mutable clashes.
         let c = self.peek();
 
-        while self.is_alpha_numberic(c) {
+        while self.is_alpha_numeric(c) {
             self.advance();
         }
 
@@ -293,7 +293,7 @@ impl Scanner {
         c == '_'
     }
 
-    fn is_alpha_numberic(&self, c: char) -> bool {
+    fn is_alpha_numeric(&self, c: char) -> bool {
         self.is_alpha(c) || self.is_digit(c)
     }
 
