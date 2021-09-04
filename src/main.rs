@@ -71,7 +71,7 @@ impl Lox {
         let tokens: Vec::<Token> = scanner.scan_tokens();
     
         for mut token in tokens {
-            println!("{:?}", token.to_string());
+            println!("{}", token.to_string());
         }
     }
     

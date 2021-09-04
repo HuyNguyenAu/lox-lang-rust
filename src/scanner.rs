@@ -19,22 +19,22 @@ pub struct Scanner {
 impl Scanner {
     pub fn new(source: String) -> Self {
         let mut reserved: HashMap<String, TokenType> = HashMap::new();
-        reserved.insert(String::from("and"),TokenType::And);
-        reserved.insert(String::from("class"),TokenType::Class);
-        reserved.insert(String::from("else"),TokenType::Else);
-        reserved.insert(String::from("false"),TokenType::False);
-        reserved.insert(String::from("for"),TokenType::For);
-        reserved.insert(String::from("fun"),TokenType::Fun);
-        reserved.insert(String::from("if"),TokenType::If);
-        reserved.insert(String::from("nil"),TokenType::Nil);
-        reserved.insert(String::from("or"),TokenType::Or);
-        reserved.insert(String::from("print"),TokenType::Print);
-        reserved.insert(String::from("return"),TokenType::Return);
-        reserved.insert(String::from("super"),TokenType::Super);
-        reserved.insert(String::from("this"),TokenType::This);
-        reserved.insert(String::from("true"),TokenType::True);
-        reserved.insert(String::from("var"),TokenType::Var);
-        reserved.insert(String::from("while"),TokenType::While);
+        reserved.insert(String::from("and"),TokenType::AND);
+        reserved.insert(String::from("class"),TokenType::CLASS);
+        reserved.insert(String::from("else"),TokenType::ELSE);
+        reserved.insert(String::from("false"),TokenType::FALSE);
+        reserved.insert(String::from("for"),TokenType::FOR);
+        reserved.insert(String::from("fun"),TokenType::FUN);
+        reserved.insert(String::from("if"),TokenType::IF);
+        reserved.insert(String::from("nil"),TokenType::NIL);
+        reserved.insert(String::from("or"),TokenType::OR);
+        reserved.insert(String::from("print"),TokenType::PRINT);
+        reserved.insert(String::from("return"),TokenType::RETURN);
+        reserved.insert(String::from("super"),TokenType::SUPER);
+        reserved.insert(String::from("this"),TokenType::THIS);
+        reserved.insert(String::from("true"),TokenType::TRUE);
+        reserved.insert(String::from("var"),TokenType::VAR);
+        reserved.insert(String::from("while"),TokenType::WHILE);
 
         Scanner {
             source,
@@ -69,44 +69,44 @@ impl Scanner {
         let c = self.advance();
 
         match c {
-            '(' => self.add_token(TokenType::LeftParen),
-            ')' => self.add_token(TokenType::RightParen),
-            '{' => self.add_token(TokenType::LeftBrace),
-            '}' => self.add_token(TokenType::RightBrace),
-            ',' => self.add_token(TokenType::Comma),
-            '.' => self.add_token(TokenType::Dot),
-            '-' => self.add_token(TokenType::Minus),
-            '+' => self.add_token(TokenType::Plus),
-            ';' => self.add_token(TokenType::SemiColon),
-            '*' => self.add_token(TokenType::Star),
+            '(' => self.add_token(TokenType::LEFT_PAREN),
+            ')' => self.add_token(TokenType::RIGHT_PAREN),
+            '{' => self.add_token(TokenType::LEFT_BRACE),
+            '}' => self.add_token(TokenType::RIGHT_BRACE),
+            ',' => self.add_token(TokenType::COMMA),
+            '.' => self.add_token(TokenType::DOT),
+            '-' => self.add_token(TokenType::MINUS),
+            '+' => self.add_token(TokenType::PLUS),
+            ';' => self.add_token(TokenType::SEMICOLON),
+            '*' => self.add_token(TokenType::STAR),
             '!' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::BangEqual,
-                    false => TokenType::Bang,
+                    true => TokenType::BANG_EQUAL,
+                    false => TokenType::BANG,
                 };
 
                 self.add_token(token_type);
             },
             '=' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::EqualEqual,
-                    false => TokenType::Equal,
+                    true => TokenType::EQUAL_EQUAL,
+                    false => TokenType::EQUAL,
                 };
 
                 self.add_token(token_type);
             },
             '<' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::LessEqual,
-                    false => TokenType::Less,
+                    true => TokenType::LESS_EQUAL,
+                    false => TokenType::LESS,
                 };
 
                 self.add_token(token_type);
             },
             '>' => {
                 let token_type: TokenType = match self.match_token('=') {
-                    true => TokenType::GreaterEqual,
-                    false => TokenType::Greater,
+                    true => TokenType::GREATER_EQUAL,
+                    false => TokenType::GREATER,
                 };
 
                 self.add_token(token_type);
@@ -135,7 +135,7 @@ impl Scanner {
                     }
                 } 
                 else {
-                    self.add_token(TokenType::Slash);
+                    self.add_token(TokenType::SLASH);
                 }
             },
             ' ' | '\r' | '\t' => {},
@@ -165,7 +165,7 @@ impl Scanner {
 
         if let Some(text) = source.get(self.start..self.current) {
             let keywords = self.keywords.clone();
-            let mut token_type = TokenType::Identifier;
+            let mut token_type = TokenType::IDENTIFIER;
 
             if let Some(value) = keywords.get_key_value(text) {
                 token_type = value.1.clone();
@@ -208,7 +208,7 @@ impl Scanner {
         // Trim the surrounding quotes.
         if let Some(value) = source.get(self.start..self.current) {
             if let Ok(number) = value.parse() {
-                self.add_token_complete(TokenType::Number, Literal:: Number(number));
+                self.add_token_complete(TokenType::NUMBER, Literal:: Number(number));
             } else {
                 panic!("Failed to convert to number!")
             }
@@ -243,7 +243,7 @@ impl Scanner {
 
         // Trim the surrounding quotes.
         if let Some(value) = source.get(start..end){
-            self.add_token_complete(TokenType::String, Literal::String(value.to_string()));
+            self.add_token_complete(TokenType::STRING, Literal::String(value.to_string()));
         } 
     }
 

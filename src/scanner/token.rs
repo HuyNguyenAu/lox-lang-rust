@@ -18,13 +18,18 @@ impl Token {
     }
 
     pub fn to_string(&mut self) -> String {
-        String::from(
-            format!(
-                "{:?} {} {:?}", 
-                self.token_type,
-                self.lexeme,
-                self.literal,
-            )
+        let literal : String  = match self.literal.clone() {
+            Literal::Bool(value) => format!("{}", value),
+            Literal::Number(value) => format!("{}", value),
+            Literal::String(value) => value,
+            Literal::Nil => String::from("null"),
+        };
+
+        format!(
+            "{:?} {} {}", 
+            self.token_type,
+            self.lexeme,
+            literal,
         )
     }
 }
