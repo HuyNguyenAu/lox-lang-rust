@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use crate::Lox;
 
@@ -155,10 +155,11 @@ impl Scanner {
 
     fn identifier(&mut self) {
         // Avoids borrowing immutable and mutable clashes.
-        let c = self.peek();
+        let mut c = self.peek();
 
         while self.is_alpha_numeric(c) {
             self.advance();
+            c = self.peek();
         }
 
         let source = self.source.clone();
@@ -179,10 +180,11 @@ impl Scanner {
 
     fn number(&mut self) {
         // Avoids borrowing immutable and mutable clashes.
-        let c = self.peek();
+        let mut c = self.peek();
 
         while self.is_digit(c) {
             self.advance();
+            c = self.peek();
         }
 
         /* Avoids borrowing immutable and mutable clashes.
@@ -196,10 +198,11 @@ impl Scanner {
 
             /* Avoids borrowing immutable and mutable clashes.
             Hoist var c to avoid creating seperate vars. */
-            let c = self.peek();
+            let mut c = self.peek();
 
             while self.is_digit(c) {
                 self.advance();
+                c = self.peek();
             }
         }
 
@@ -302,7 +305,7 @@ impl Scanner {
     }
 
     fn is_at_end(&mut self) -> bool {
-        self.current >= self.source.len()
+        self.current >= self.source.len() - 1
     }
 
     fn advance(&mut self) -> char {

@@ -20,7 +20,15 @@ impl Token {
     pub fn to_string(&mut self) -> String {
         let literal : String  = match self.literal.clone() {
             Literal::Bool(value) => format!("{}", value),
-            Literal::Number(value) => format!("{}", value),
+            Literal::Number(value) => {
+                let mut x = value.to_string();
+
+                if value.fract() == 0.0 {
+                    x = format!("{}.0", value);
+                }
+                
+                x
+            },
             Literal::String(value) => value,
             Literal::Nil => String::from("null"),
         };
