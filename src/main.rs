@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use scanner::{ Scanner, token::Token };
 
-/* Avoids passing in self as argument which allows use to 
+/* Avoids passing in self as argument which allows you to 
 continue with the tutorial without changing the structure
 of the code too much for error and report function. */
 static HAD_ERROR: AtomicBool = AtomicBool::new(false);
@@ -70,8 +70,8 @@ impl Lox {
         let mut scanner: Scanner = Scanner::new(source);
         let tokens: Vec::<Token> = scanner.scan_tokens();
     
-        for token in tokens {
-            println!("{:?}", token);
+        for mut token in tokens {
+            println!("{:?}", token.to_string());
         }
     }
     
