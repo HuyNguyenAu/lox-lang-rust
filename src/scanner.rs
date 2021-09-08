@@ -1,70 +1,70 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{collections::HashMap};
 
 use crate::Lox;
 
 pub mod token;
 
-use token::{ Token, TokenType, Literal };
+use token::{Literal, Token, TokenType};
 
 pub struct Scanner {
     source: String,
     tokens: Vec<Token>,
     start: usize,
     current: usize,
-    end: usize,
     line: u32,
-    keywords: HashMap<String, TokenType>
+    keywords: HashMap<String, TokenType>,
 }
 
 impl Scanner {
     pub fn new(source: String) -> Self {
         let mut reserved: HashMap<String, TokenType> = HashMap::new();
-        reserved.insert(String::from("and"),TokenType::AND);
-        reserved.insert(String::from("class"),TokenType::CLASS);
-        reserved.insert(String::from("else"),TokenType::ELSE);
-        reserved.insert(String::from("false"),TokenType::FALSE);
-        reserved.insert(String::from("for"),TokenType::FOR);
-        reserved.insert(String::from("fun"),TokenType::FUN);
-        reserved.insert(String::from("if"),TokenType::IF);
-        reserved.insert(String::from("nil"),TokenType::NIL);
-        reserved.insert(String::from("or"),TokenType::OR);
-        reserved.insert(String::from("print"),TokenType::PRINT);
-        reserved.insert(String::from("return"),TokenType::RETURN);
-        reserved.insert(String::from("super"),TokenType::SUPER);
-        reserved.insert(String::from("this"),TokenType::THIS);
-        reserved.insert(String::from("true"),TokenType::TRUE);
-        reserved.insert(String::from("var"),TokenType::VAR);
-        reserved.insert(String::from("while"),TokenType::WHILE);
+        reserved.insert(String::from("and"), TokenType::AND);
+        reserved.insert(String::from("class"), TokenType::CLASS);
+        reserved.insert(String::from("else"), TokenType::ELSE);
+        reserved.insert(String::from("false"), TokenType::FALSE);
+        reserved.insert(String::from("for"), TokenType::FOR);
+        reserved.insert(String::from("fun"), TokenType::FUN);
+        reserved.insert(String::from("if"), TokenType::IF);
+        reserved.insert(String::from("nil"), TokenType::NIL);
+        reserved.insert(String::from("or"), TokenType::OR);
+        reserved.insert(String::from("print"), TokenType::PRINT);
+        reserved.insert(String::from("return"), TokenType::RETURN);
+        reserved.insert(String::from("super"), TokenType::SUPER);
+        reserved.insert(String::from("this"), TokenType::THIS);
+        reserved.insert(String::from("true"), TokenType::TRUE);
+        reserved.insert(String::from("var"), TokenType::VAR);
+        reserved.insert(String::from("while"), TokenType::WHILE);
 
         Scanner {
             source,
             tokens: Vec::new(),
-            start: 0,
-            current: 0,
-            end: 0,
-            line: 1,
-            keywords: reserved
+            start: 0, // Offset of the first character of the lexeme being scanned.
+            current: 0, // Offset of the current character being scanned.
+            line: 1, // Track the line of the current character is on.
+            keywords: reserved,
         }
     }
 
+    // Work through the source code adding tokens until you run out of characters.
     pub fn scan_tokens(&mut self) -> Vec<Token> {
         while !self.is_at_end() {
+            // Currently at the start of the next lexeme.
             self.start = self.current;
             self.scan_token();
         }
 
-        self.tokens.push(
-            Token::new(
-                TokenType::EOF, 
-                String::new(), 
-                Literal::Nil, 
-                self.line
-                )
-            );
+        // Add EOF token at the end to make our parser cleaner.
+        self.tokens.push(Token::new(
+            TokenType::EOF,
+            String::new(),
+            Literal::Nil,
+            self.line,
+        ));
 
         self.tokens.clone()
     }
 
+    // Try to match a lexeme to create a new token so that it can be added to tokens.
     pub fn scan_token(&mut self) {
         let c = self.advance();
 
@@ -86,7 +86,7 @@ impl Scanner {
                 };
 
                 self.add_token(token_type);
-            },
+            }
             '=' => {
                 let token_type: TokenType = match self.match_token('=') {
                     true => TokenType::EQUAL_EQUAL,
@@ -94,7 +94,7 @@ impl Scanner {
                 };
 
                 self.add_token(token_type);
-            },
+            }
             '<' => {
                 let token_type: TokenType = match self.match_token('=') {
                     true => TokenType::LESS_EQUAL,
@@ -102,7 +102,7 @@ impl Scanner {
                 };
 
                 self.add_token(token_type);
-            },
+            }
             '>' => {
                 let token_type: TokenType = match self.match_token('=') {
                     true => TokenType::GREATER_EQUAL,
@@ -110,7 +110,7 @@ impl Scanner {
                 };
 
                 self.add_token(token_type);
-            },
+            }
             '/' => {
                 if self.match_token('/') {
                     // A comment goes until the end of the line.
@@ -133,12 +133,11 @@ impl Scanner {
 
                         self.advance();
                     }
-                } 
-                else {
+                } else {
                     self.add_token(TokenType::SLASH);
                 }
-            },
-            ' ' | '\r' | '\t' => {},
+            }
+            ' ' | '\r' | '\t' => {} // Ignore whitespace. Do nothing.
             '\n' => self.line += 1,
             '"' => self.string(),
             _ => {
@@ -153,6 +152,8 @@ impl Scanner {
         }
     }
 
+
+    // Consume the entire identifier literal.
     fn identifier(&mut self) {
         // Avoids borrowing immutable and mutable clashes.
         let mut c = self.peek();
@@ -178,10 +179,12 @@ impl Scanner {
         }
     }
 
+    // Consume the number literal, which can be an natural or decimal number.
     fn number(&mut self) {
         // Avoids borrowing immutable and mutable clashes.
         let mut c = self.peek();
 
+        // Consume the whole number part.
         while self.is_digit(c) {
             self.advance();
             c = self.peek();
@@ -211,7 +214,7 @@ impl Scanner {
         // Trim the surrounding quotes.
         if let Some(value) = source.get(self.start..self.current) {
             if let Ok(number) = value.parse() {
-                self.add_token_complete(TokenType::NUMBER, Literal:: Number(number));
+                self.add_token_complete(TokenType::NUMBER, Literal::Number(number));
             } else {
                 panic!("Failed to convert to number!")
             }
@@ -220,6 +223,7 @@ impl Scanner {
         }
     }
 
+    // Consume the entire string literal.
     fn string(&mut self) {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
@@ -245,11 +249,12 @@ impl Scanner {
         let end = self.current - 1;
 
         // Trim the surrounding quotes.
-        if let Some(value) = source.get(start..end){
+        if let Some(value) = source.get(start..end) {
             self.add_token_complete(TokenType::STRING, Literal::String(value.to_string()));
-        } 
+        }
     }
 
+    // Only consume the current character if it's the one we're expecting.
     fn match_token(&mut self, expected: char) -> bool {
         if self.is_at_end() {
             return false;
@@ -266,6 +271,8 @@ impl Scanner {
         return true;
     }
 
+    // Look at the current character and return it.
+    // This does not consume the character.
     fn peek(&mut self) -> char {
         if self.is_at_end() {
             return '\0';
@@ -278,6 +285,8 @@ impl Scanner {
         panic!("")
     }
 
+    // Look ahead at the next character and return it.
+    // This does not consume the character.
     fn peek_next(&mut self) -> char {
         if (self.current + 1) >= self.source.len() {
             return '\0';
@@ -290,24 +299,27 @@ impl Scanner {
         panic!("Failed to peek next char in source!");
     }
 
+    // Check if the character is an alpha including an underscore.
     fn is_alpha(&self, c: char) -> bool {
-        (c >= 'a' && c <= 'z') ||
-        (c >= 'A' && c <= 'Z') ||
-        c == '_'
+        (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
     }
 
+    // Check if the character is an alpha numeric including an underscore.
     fn is_alpha_numeric(&self, c: char) -> bool {
         self.is_alpha(c) || self.is_digit(c)
     }
 
+    // Check if the character is between the digits 0 and 9.
     fn is_digit(&self, c: char) -> bool {
         c >= '0' && c <= '9'
     }
 
+    // Check to see if we consumed all of the characters.
     fn is_at_end(&mut self) -> bool {
         self.current >= self.source.len() - 1
     }
 
+    // Consume the next character and return it.
     fn advance(&mut self) -> char {
         if let Some(c) = self.source.chars().nth(self.current) {
             self.current += 1;
@@ -317,15 +329,18 @@ impl Scanner {
         panic!("Failed to advance!")
     }
 
+    // Take the lexeme literal to create a new token from it and
+    // add it to tokens.
     fn add_token(&mut self, token_type: TokenType) {
         self.add_token_complete(token_type, Literal::Nil);
     }
 
+    // Take the lexeme literal to create a new token from it and
+    // add it to tokens.
     fn add_token_complete(&mut self, token_type: TokenType, literal: Literal) {
         if let Some(text) = self.source.get(self.start..self.current) {
-            self.tokens.push(
-                Token::new(token_type, text.to_string(), literal, self.line)
-            )
+            self.tokens
+                .push(Token::new(token_type, text.to_string(), literal, self.line))
         }
     }
 }
