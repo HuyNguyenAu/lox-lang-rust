@@ -2,9 +2,10 @@ use std::{collections::HashMap};
 
 use crate::Lox;
 
-pub mod token;
+mod token;
 
-use token::{Literal, Token, TokenType};
+pub use token::{Token, TokenType};
+use token::Literal;
 
 pub struct Scanner {
     source: String,

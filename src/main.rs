@@ -6,7 +6,7 @@ use std::io::{stdin, stdout, Write};
 use std::process::exit;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use scanner::{token::Token, Scanner};
+use scanner::{Scanner, Token};
 
 /* Avoids passing in self as argument which allows you to
 continue with the tutorial without changing the structure

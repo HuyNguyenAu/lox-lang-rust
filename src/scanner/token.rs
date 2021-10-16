@@ -1,8 +1,8 @@
-mod literal;
 mod token_type;
+mod literal;
 
-pub use literal::Literal;
 pub use token_type::TokenType;
+pub use literal::Literal;
 
 #[derive(Debug, Clone)]
 pub struct Token {
